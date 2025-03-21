@@ -252,7 +252,7 @@ const societyController = {
       );
   
       // Send emergency emails to residents
-      const emailPromises = society.residents.map(resident => 
+      const residentEmails = society.residents.map(resident => 
         sendEmergencyEmail(
           resident.email, 
           '🚨 FIRE EMERGENCY ALERT', 
@@ -261,9 +261,19 @@ const societyController = {
            Emergency services have been notified.`
         )
       );
-  
-      // Send emails in parallel
-      await Promise.all(emailPromises);
+      
+      // Add the fire station email
+      const stationEmail = sendEmergencyEmail(
+        nearestStation.email, 
+        '🚨 FIRE EMERGENCY - RESPONSE REQUIRED', 
+        `EMERGENCY: Fire detected at ${society.name}, ${society.address}.
+         Society coordinates: ${society.coordinates.coordinates.join(', ')}
+         Secretary contact: ${society.secretaryName}, ${society.secretaryPhone}
+         Immediate response required.`
+      );
+      
+      // Send all emails in parallel
+      await Promise.all([...residentEmails, stationEmail]);
   
       res.status(200).json({
         message: 'Fire alert triggered successfully',
